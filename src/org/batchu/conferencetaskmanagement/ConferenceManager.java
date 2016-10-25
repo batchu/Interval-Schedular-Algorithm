@@ -1,60 +1,87 @@
-import org.batchu.conferencetaskmanagement.InvalidTalkException;
-import org.batchu.conferencetaskmanagement.Talk;
+package org.batchu.conferencetaskmanagement;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
+/**
+ * Created by uhsarp on 10/24/2016.
+ */
+public class ConferenceManager {
 
-
-    public static void main(String[] args) {
-        String fileName = "C:\\dev\\Interval-Schedular-Algorithm\\input.txt";
-        ConferenceManager conferenceManager = new ConferenceManager();
-        try{
-            conferenceManager.scheduleConference(fileName);
-        }catch(InvalidTalkException ite) {
-            ite.printStackTrace();
-        }catch(Exception e)
-        {
-            e.printStackTrace();
-        }
+    /**
+     * Constructor for ConferenceManager.
+     */
+    public ConferenceManager() {
     }
 
-    public List<String> getTalkListFromFile(String fileName) throws InvalidTalkException
-    {
+    /**
+     * public method to create and schedule conference.
+     *
+     * @param fileName
+     * @throws InvalidTalkException
+     */
+    public List<List<Talk>> scheduleConference(String fileName) throws Exception {
+        List<String> talkList = getTalkListFromFile(fileName);
+        return scheduleConference(talkList);
+    }
+
+    /**
+     * public method to create and schedule conference.
+     *
+     * @param talkList
+     * @throws InvalidTalkException
+     */
+    public List<List<Talk>> scheduleConference(List<String> talkList) throws Exception {
+        List<Talk> talksList = validateAndCreateTalks(talkList);
+        return getScheduleConferenceTrack(talksList);
+    }
+
+    /**
+     * Load talk list from input file.
+     *
+     * @param fileName
+     * @return
+     * @throws InvalidTalkException
+     */
+    public List<String> getTalkListFromFile(String fileName) throws InvalidTalkException {
         List<String> talkList = new ArrayList<String>();
-        FileInputStream fstream=null;
-        try{
+        try {
             // Open the file.
-            fstream = new FileInputStream(fileName);
+            FileInputStream fstream = new FileInputStream(fileName);
             // Get the object of DataInputStream
             DataInputStream in = new DataInputStream(fstream);
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             String strLine = br.readLine();
             //Read File Line By Line
-            while (strLine != null)   {
+            while (strLine != null) {
                 talkList.add(strLine);
                 strLine = br.readLine();
             }
             //Close the input stream
             in.close();
-        }catch (Exception e){//Catch exception if any
+        } catch (Exception e) {//Catch exception if any
             System.err.println("Error: " + e.getMessage());
-        }finally {
-            try {
-                fstream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
 
         return talkList;
     }
 
-    private List<Talk> validateAndCreateTalks(List<String> talkList) throws Exception
-    {
+    /**
+     * Validate talk list, check the time for talk and initilize Talk Object accordingly.
+     *
+     * @param talkList
+     * @throws Exception
+     */
+    private List<Talk> validateAndCreateTalks(List<String> talkList) throws Exception {
         // If talksList is null throw exception invaid list to schedule.
-        if(talkList == null)
+        if (talkList == null)
             throw new InvalidTalkException("Empty Talk List");
 
         List<Talk> validTalksList = new ArrayList<Talk>();
@@ -63,37 +90,35 @@ import java.util.List;
         String lightningSuffix = "lightning";
 
         // Iterate list and validate time.
-        for(String talk : talkList)
-        {
+        for (String talk : talkList) {
             int lastSpaceIndex = talk.lastIndexOf(" ");
             // if talk does not have any space, means either title or time is missing.
-            if(lastSpaceIndex == -1)
+            if (lastSpaceIndex == -1)
                 throw new InvalidTalkException("Invalid talk, " + talk + ". Talk time must be specify.");
 
             String name = talk.substring(0, lastSpaceIndex);
             String timeStr = talk.substring(lastSpaceIndex + 1);
             // If title is missing or blank.
-            if(name == null || "".equals(name.trim()))
+            if (name == null || "".equals(name.trim()))
                 throw new InvalidTalkException("Invalid talk name, " + talk);
                 // If time is not ended with min or lightning.
-            else if(!timeStr.endsWith(minSuffix) && !timeStr.endsWith(lightningSuffix))
+            else if (!timeStr.endsWith(minSuffix) && !timeStr.endsWith(lightningSuffix))
                 throw new InvalidTalkException("Invalid talk time, " + talk + ". Time must be in min or in lightning");
 
             talkCount++;
             int time = 0;
             // Parse time from the time string .
-            try{
-                if(timeStr.endsWith(minSuffix)) {
+            try {
+                if (timeStr.endsWith(minSuffix)) {
                     time = Integer.parseInt(timeStr.substring(0, timeStr.indexOf(minSuffix)));
-                }
-                else if(timeStr.endsWith(lightningSuffix)) {
+                } else if (timeStr.endsWith(lightningSuffix)) {
                     String lightningTime = timeStr.substring(0, timeStr.indexOf(lightningSuffix));
-                    if("".equals(lightningTime))
+                    if ("".equals(lightningTime))
                         time = 5;
                     else
                         time = Integer.parseInt(lightningTime) * 5;
                 }
-            }catch(NumberFormatException nfe) {
+            } catch (NumberFormatException nfe) {
                 throw new InvalidTalkException("Unbale to parse time " + timeStr + " for talk " + talk);
             }
 
@@ -104,12 +129,17 @@ import java.util.List;
         return validTalksList;
     }
 
-    private List<List<Talk>> getScheduleConferenceTrack(List<Talk> talksList) throws Exception
-    {
+    /**
+     * Schedule Conference tracks for morning and evening session.
+     *
+     * @param talksList
+     * @throws Exception
+     */
+    private List<List<Talk>> getScheduleConferenceTrack(List<Talk> talksList) throws Exception {
         // Find the total possible days.
         int perDayMinTime = 6 * 60;
         int totalTalksTime = getTotalTalksTime(talksList);
-        int totalPossibleDays = totalTalksTime/perDayMinTime;
+        int totalPossibleDays = totalTalksTime / perDayMinTime;
 
         // Sort the talkList.
         List<Talk> talksListForOperation = new ArrayList<Talk>();
@@ -120,7 +150,7 @@ import java.util.List;
         List<List<Talk>> combForMornSessions = findPossibleCombSession(talksListForOperation, totalPossibleDays, true);
 
         // Remove all the scheduled talks for morning session, from the operationList.
-        for(List<Talk> talkList : combForMornSessions) {
+        for (List<Talk> talkList : combForMornSessions) {
             talksListForOperation.removeAll(talkList);
         }
 
@@ -128,21 +158,21 @@ import java.util.List;
         List<List<Talk>> combForEveSessions = findPossibleCombSession(talksListForOperation, totalPossibleDays, false);
 
         // Remove all the scheduled talks for evening session, from the operationList.
-        for(List<Talk> talkList : combForEveSessions) {
+        for (List<Talk> talkList : combForEveSessions) {
             talksListForOperation.removeAll(talkList);
         }
 
         // check if the operation list is not empty, then try to fill all the remaining talks in evening session.
         int maxSessionTimeLimit = 240;
-        if(!talksListForOperation.isEmpty()) {
+        if (!talksListForOperation.isEmpty()) {
             List<Talk> scheduledTalkList = new ArrayList<Talk>();
-            for(List<Talk> talkList : combForEveSessions) {
+            for (List<Talk> talkList : combForEveSessions) {
                 int totalTime = getTotalTalksTime(talkList);
 
-                for(Talk talk : talksListForOperation) {
+                for (Talk talk : talksListForOperation) {
                     int talkTime = talk.getTimeDuration();
 
-                    if(talkTime + totalTime <= maxSessionTimeLimit) {
+                    if (talkTime + totalTime <= maxSessionTimeLimit) {
                         talkList.add(talk);
                         talk.setScheduled(true);
                         scheduledTalkList.add(talk);
@@ -150,14 +180,13 @@ import java.util.List;
                 }
 
                 talksListForOperation.removeAll(scheduledTalkList);
-                if(talksListForOperation.isEmpty())
+                if (talksListForOperation.isEmpty())
                     break;
             }
         }
 
         // If operation list is still not empty, its mean the conference can not be scheduled with the provided data.
-        if(!talksListForOperation.isEmpty())
-        {
+        if (!talksListForOperation.isEmpty()) {
             throw new Exception("Unable to schedule all task for conferencing.");
         }
 
@@ -165,12 +194,21 @@ import java.util.List;
         return getScheduledTalksList(combForMornSessions, combForEveSessions);
     }
 
-    private List<List<Talk>> findPossibleCombSession(List<Talk> talksListForOperation, int totalPossibleDays, boolean morningSession)
-    {
+    /**
+     * Find possible combination for the session.
+     * If morning session then each session must have total time 3 hr.
+     * if evening session then each session must have total time greater then 3 hr.
+     *
+     * @param talksListForOperation
+     * @param totalPossibleDays
+     * @param morningSession
+     * @return
+     */
+    private List<List<Talk>> findPossibleCombSession(List<Talk> talksListForOperation, int totalPossibleDays, boolean morningSession) {
         int minSessionTimeLimit = 180;
         int maxSessionTimeLimit = 240;
 
-        if(morningSession)
+        if (morningSession)
             maxSessionTimeLimit = minSessionTimeLimit;
 
         int talkListSize = talksListForOperation.size();
@@ -179,23 +217,23 @@ import java.util.List;
 
         // Loop to get combination for total possible days.
         // Check one by one from each talk to get possible combination.
-        for(int count = 0; count < talkListSize; count++) {
+        for (int count = 0; count < talkListSize; count++) {
             int startPoint = count;
             int totalTime = 0;
             List<Talk> possibleCombinationList = new ArrayList<Talk>();
 
             // Loop to get possible combination.
-            while(startPoint != talkListSize) {
+            while (startPoint != talkListSize) {
                 int currentCount = startPoint;
                 startPoint++;
                 Talk currentTalk = talksListForOperation.get(currentCount);
-                if(currentTalk.isScheduled())
+                if (currentTalk.isScheduled())
                     continue;
                 int talkTime = currentTalk.getTimeDuration();
                 // If the current talk time is greater than maxSessionTimeLimit or
                 // sum of the current time and total of talk time added in list  is greater than maxSessionTimeLimit.
                 // then continue.
-                if(talkTime > maxSessionTimeLimit || talkTime + totalTime > maxSessionTimeLimit) {
+                if (talkTime > maxSessionTimeLimit || talkTime + totalTime > maxSessionTimeLimit) {
                     continue;
                 }
 
@@ -203,29 +241,29 @@ import java.util.List;
                 totalTime += talkTime;
 
                 // If total time is completed for this session than break this loop.
-                if(morningSession) {
-                    if(totalTime == maxSessionTimeLimit)
+                if (morningSession) {
+                    if (totalTime == maxSessionTimeLimit)
                         break;
-                }else if(totalTime >= minSessionTimeLimit)
+                } else if (totalTime >= minSessionTimeLimit)
                     break;
             }
 
             // Valid session time for morning session is equal to maxSessionTimeLimit.
             // Valid session time for evening session is less than or eqaul to maxSessionTimeLimit and greater than or equal to minSessionTimeLimit.
             boolean validSession = false;
-            if(morningSession)
+            if (morningSession)
                 validSession = (totalTime == maxSessionTimeLimit);
             else
                 validSession = (totalTime >= minSessionTimeLimit && totalTime <= maxSessionTimeLimit);
 
             // If session is valid than add this session in the possible combination list and set all added talk as scheduled.
-            if(validSession) {
+            if (validSession) {
                 possibleCombinationsOfTalks.add(possibleCombinationList);
-                for(Talk talk : possibleCombinationList){
+                for (Talk talk : possibleCombinationList) {
                     talk.setScheduled(true);
                 }
                 possibleCombinationCount++;
-                if(possibleCombinationCount == totalPossibleDays)
+                if (possibleCombinationCount == totalPossibleDays)
                     break;
             }
         }
@@ -233,18 +271,23 @@ import java.util.List;
         return possibleCombinationsOfTalks;
     }
 
-    private List<List<Talk>> getScheduledTalksList(List<List<Talk>> combForMornSessions, List<List<Talk>> combForEveSessions)
-    {
+    /**
+     * Print the scheduled talks with the expected text msg.
+     *
+     * @param combForMornSessions
+     * @param combForEveSessions
+     */
+    private List<List<Talk>> getScheduledTalksList(List<List<Talk>> combForMornSessions, List<List<Talk>> combForEveSessions) {
         List<List<Talk>> scheduledTalksList = new ArrayList<List<Talk>>();
         int totalPossibleDays = combForMornSessions.size();
 
         // for loop to schedule event for all days.
-        for(int dayCount = 0; dayCount < totalPossibleDays; dayCount++) {
+        for (int dayCount = 0; dayCount < totalPossibleDays; dayCount++) {
             List<Talk> talkList = new ArrayList<Talk>();
 
             // Create a date and initialize start time 09:00 AM.
-            Date date = new Date( );
-            SimpleDateFormat dateFormat = new SimpleDateFormat ("hh:mma ");
+            Date date = new Date();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mma ");
             date.setHours(9);
             date.setMinutes(0);
             date.setSeconds(0);
@@ -256,7 +299,7 @@ import java.util.List;
 
             // Morning Session - set the scheduled time in the talk and get the next time using time duration of current talk.
             List<Talk> mornSessionTalkList = combForMornSessions.get(dayCount);
-            for(Talk talk : mornSessionTalkList) {
+            for (Talk talk : mornSessionTalkList) {
                 talk.setScheduledTime(scheduledTime);
                 System.out.println(scheduledTime + talk.getTitle());
                 scheduledTime = getNextScheduledTime(date, talk.getTimeDuration());
@@ -273,7 +316,7 @@ import java.util.List;
             // Evening Session - set the scheduled time in the talk and get the next time using time duration of current talk.
             scheduledTime = getNextScheduledTime(date, lunchTimeDuration);
             List<Talk> eveSessionTalkList = combForEveSessions.get(dayCount);
-            for(Talk talk : eveSessionTalkList) {
+            for (Talk talk : eveSessionTalkList) {
                 talk.setScheduledTime(scheduledTime);
                 talkList.add(talk);
                 System.out.println(scheduledTime + talk.getTitle());
@@ -291,22 +334,33 @@ import java.util.List;
         return scheduledTalksList;
     }
 
-    public static int getTotalTalksTime(List<Talk> talksList)
-    {
-        if(talksList == null || talksList.isEmpty())
+    /**
+     * To get total time of talks of the given list.
+     *
+     * @param talksList
+     * @return
+     */
+    public static int getTotalTalksTime(List<Talk> talksList) {
+        if (talksList == null || talksList.isEmpty())
             return 0;
 
         int totalTime = 0;
-        for(Talk talk : talksList) {
+        for (Talk talk : talksList) {
             totalTime += talk.timeDuration;
         }
         return totalTime;
     }
 
-    private String getNextScheduledTime(Date date, int timeDuration)
-    {
-        long timeInLong  = date.getTime();
-        SimpleDateFormat dateFormat = new SimpleDateFormat ("hh:mma ");
+    /**
+     * To get next scheduled time in form of String.
+     *
+     * @param date
+     * @param timeDuration
+     * @return
+     */
+    private String getNextScheduledTime(Date date, int timeDuration) {
+        long timeInLong = date.getTime();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mma ");
 
         long timeDurationInLong = timeDuration * 60 * 1000;
         long newTimeInLong = timeInLong + timeDurationInLong;
@@ -316,4 +370,118 @@ import java.util.List;
         return str;
     }
 
+    /**
+     * Main method to execute program.
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
+        String fileName = "D:\\Jdeveloper\\mywork\\ConferenceTrackManagement\\src\\com\\mywork\\conference\\data\\ConferenceData.txt";
+        ConferenceManager conferenceManager = new ConferenceManager();
+        try {
+            conferenceManager.scheduleConference(fileName);
+        } catch (InvalidTalkException ite) {
+            ite.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    /**
+     * class Talk, to store and retrive information about talk.
+     * implements comparabe to sort talk on the basis of time duration.
+     */
+    public static class Talk implements Comparable {
+        String title;
+        String name;
+        int timeDuration;
+        boolean scheduled = false;
+        String scheduledTime;
+
+        /**
+         * Constructor for Talk.
+         *
+         * @param title
+         * @param name
+         * @param time
+         */
+        public Talk(String title, String name, int time) {
+            this.title = title;
+            this.name = name;
+            this.timeDuration = time;
+        }
+
+        /**
+         * To set the flag scheduled.
+         *
+         * @param scheduled
+         */
+        public void setScheduled(boolean scheduled) {
+            this.scheduled = scheduled;
+        }
+
+        /**
+         * To get flag scheduled.
+         * If talk scheduled then returns true, else false.
+         *
+         * @return
+         */
+        public boolean isScheduled() {
+            return scheduled;
+        }
+
+        /**
+         * Set scheduled time for the talk. in format - hr:min AM/PM.
+         *
+         * @param scheduledTime
+         */
+        public void setScheduledTime(String scheduledTime) {
+            this.scheduledTime = scheduledTime;
+        }
+
+        /**
+         * To get scheduled time.
+         *
+         * @return
+         */
+        public String getScheduledTime() {
+            return scheduledTime;
+        }
+
+        /**
+         * To get time duration  for the talk.
+         *
+         * @return
+         */
+        public int getTimeDuration() {
+            return timeDuration;
+        }
+
+        /**
+         * To get the title of the talk.
+         *
+         * @return
+         */
+        public String getTitle() {
+            return title;
+        }
+
+        /**
+         * Sort data in decending order.
+         *
+         * @param obj
+         * @return
+         */
+        @Override
+        public int compareTo(Object obj) {
+            Talk talk = (Talk) obj;
+            if (this.timeDuration > talk.timeDuration)
+                return -1;
+            else if (this.timeDuration < talk.timeDuration)
+                return 1;
+            else
+                return 0;
+        }
+    }
+
+}
