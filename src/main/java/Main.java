@@ -5,10 +5,19 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Main {
+
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        String fileName = "C:\\dev\\Interval-Schedular-Algorithm\\input.txt";
+        ConferenceManager conferenceManager = new ConferenceManager();
+        try{
+            conferenceManager.scheduleConference(fileName);
+        }catch(InvalidTalkException ite) {
+            ite.printStackTrace();
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
     public List<String> getTalkListFromFile(String fileName) throws InvalidTalkException
@@ -308,7 +317,3 @@ public class Main {
     }
 
 
-
-
-
-}
