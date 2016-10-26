@@ -4,7 +4,7 @@ import org.batchu.conferencetaskmanagement.InvalidTalkException;
 public class Main {
 
     public static void main(String[] args) {
-        String fileName = "C:\\dev\\Interval-Schedular-Algorithm\\input.txt";
+        String fileName = "C:\\Users\\me\\Documents\\Interval-Schedular-Algorithm\\input.txt";
         ConferenceManager conferenceManager = new ConferenceManager();
         try{
             conferenceManager.scheduleConference(fileName);

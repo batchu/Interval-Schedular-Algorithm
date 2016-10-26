@@ -370,22 +370,6 @@ public class ConferenceManager {
         return str;
     }
 
-    /**
-     * Main method to execute program.
-     *
-     * @param args
-     */
-    public static void main(String[] args) {
-        String fileName = "D:\\Jdeveloper\\mywork\\ConferenceTrackManagement\\src\\com\\mywork\\conference\\data\\ConferenceData.txt";
-        ConferenceManager conferenceManager = new ConferenceManager();
-        try {
-            conferenceManager.scheduleConference(fileName);
-        } catch (InvalidTalkException ite) {
-            ite.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * class Talk, to store and retrive information about talk.
