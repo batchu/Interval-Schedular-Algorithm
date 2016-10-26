@@ -11,21 +11,21 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Created by uhsarp on 10/24/2016.
+ * Created by pbatchu on 10/24/2016.
  */
-public class ConferenceManager {
+public class IntervalSchedulerUtility {
 
     /**
-     * Constructor for ConferenceManager.
+     * Constructor for IntervalSchedulerUtility.
      */
-    public ConferenceManager() {
+    public IntervalSchedulerUtility() {
     }
 
     /**
      * public method to create and schedule conference.
      *
      * @param fileName
-     * @throws InvalidTalkException
+     * @throws ConferenceSchedularException
      */
     public List<List<Talk>> scheduleConference(String fileName) throws Exception {
         List<String> talkList = getTalkListFromFile(fileName);
@@ -36,7 +36,7 @@ public class ConferenceManager {
      * public method to create and schedule conference.
      *
      * @param talkList
-     * @throws InvalidTalkException
+     * @throws ConferenceSchedularException
      */
     public List<List<Talk>> scheduleConference(List<String> talkList) throws Exception {
         List<Talk> talksList = validateAndCreateTalks(talkList);
@@ -48,9 +48,9 @@ public class ConferenceManager {
      *
      * @param fileName
      * @return
-     * @throws InvalidTalkException
+     * @throws ConferenceSchedularException
      */
-    public List<String> getTalkListFromFile(String fileName) throws InvalidTalkException {
+    public List<String> getTalkListFromFile(String fileName) throws ConferenceSchedularException {
         List<String> talkList = new ArrayList<String>();
         try {
             // Open the file.
@@ -82,7 +82,7 @@ public class ConferenceManager {
     private List<Talk> validateAndCreateTalks(List<String> talkList) throws Exception {
         // If talksList is null throw exception invaid list to schedule.
         if (talkList == null)
-            throw new InvalidTalkException("Empty Talk List");
+            throw new ConferenceSchedularException("Empty Talk List");
 
         List<Talk> validTalksList = new ArrayList<Talk>();
         int talkCount = -1;
@@ -94,16 +94,16 @@ public class ConferenceManager {
             int lastSpaceIndex = talk.lastIndexOf(" ");
             // if talk does not have any space, means either title or time is missing.
             if (lastSpaceIndex == -1)
-                throw new InvalidTalkException("Invalid talk, " + talk + ". Talk time must be specify.");
+                throw new ConferenceSchedularException("Invalid talk, " + talk + ". Talk time must be specify.");
 
             String name = talk.substring(0, lastSpaceIndex);
             String timeStr = talk.substring(lastSpaceIndex + 1);
             // If title is missing or blank.
             if (name == null || "".equals(name.trim()))
-                throw new InvalidTalkException("Invalid talk name, " + talk);
+                throw new ConferenceSchedularException("Invalid talk name, " + talk);
                 // If time is not ended with min or lightning.
             else if (!timeStr.endsWith(minSuffix) && !timeStr.endsWith(lightningSuffix))
-                throw new InvalidTalkException("Invalid talk time, " + talk + ". Time must be in min or in lightning");
+                throw new ConferenceSchedularException("Invalid talk time, " + talk + ". Time must be in min or in lightning");
 
             talkCount++;
             int time = 0;
@@ -119,7 +119,7 @@ public class ConferenceManager {
                         time = Integer.parseInt(lightningTime) * 5;
                 }
             } catch (NumberFormatException nfe) {
-                throw new InvalidTalkException("Unbale to parse time " + timeStr + " for talk " + talk);
+                throw new ConferenceSchedularException("Unbale to parse time " + timeStr + " for talk " + talk);
             }
 
             // Add talk to the valid talk List.

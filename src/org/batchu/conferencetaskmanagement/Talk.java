@@ -3,28 +3,21 @@ package org.batchu.conferencetaskmanagement;
 /**
  * Created by pbatchu on 10/24/2016.
  */
-/**
- * class Talk, to store and retrive information about talk.
- * implements comparabe to sort talk on the basis of time duration.
+/*
+Model for each lecture/talk
  */
 public class Talk implements Comparable {
     String title;
     String name;
-    int timeDuration;
+    int duration;
     boolean scheduled = false;
     String scheduledTime;
 
-    /**
-     * Constructor for Talk.
-     *
-     * @param title
-     * @param name
-     * @param time
-     */
+
     public Talk(String title, String name, int time) {
         this.title = title;
         this.name = name;
-        this.timeDuration = time;
+        this.duration = time;
     }
 
     /**
@@ -69,8 +62,8 @@ public class Talk implements Comparable {
      *
      * @return
      */
-    public int getTimeDuration() {
-        return timeDuration;
+    public int getDuration() {
+        return duration;
     }
 
     /**
@@ -85,9 +78,9 @@ public class Talk implements Comparable {
     public int compareTo(Object obj)
     {
         Talk talk = (Talk)obj;
-        if(this.timeDuration > talk.timeDuration)
+        if(this.duration > talk.duration)
             return -1;
-        else if(this.timeDuration < talk.timeDuration)
+        else if(this.duration < talk.duration)
             return 1;
         else
             return 0;

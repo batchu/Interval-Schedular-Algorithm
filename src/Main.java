@@ -1,14 +1,15 @@
-import org.batchu.conferencetaskmanagement.ConferenceManager;
-import org.batchu.conferencetaskmanagement.InvalidTalkException;
+import org.batchu.conferencetaskmanagement.IntervalSchedulerUtility;
+import org.batchu.conferencetaskmanagement.ConferenceSchedularException;
 
 public class Main {
 
     public static void main(String[] args) {
+        //Location of the input data file - Update as necessary
         String fileName = "C:\\Users\\me\\Documents\\Interval-Schedular-Algorithm\\input.txt";
-        ConferenceManager conferenceManager = new ConferenceManager();
+        IntervalSchedulerUtility intervalSchedulerUtility = new IntervalSchedulerUtility();
         try{
-            conferenceManager.scheduleConference(fileName);
-        }catch(InvalidTalkException ite) {
+            intervalSchedulerUtility.scheduleConference(fileName);
+        }catch(ConferenceSchedularException ite) {
             ite.printStackTrace();
         }catch(Exception e)
         {
